@@ -117,19 +117,19 @@ translateJSON.prototype.objectToArray = function (obj) {
  * @param {type} array
  * @returns {unresolved}
  */
-translateJSON.prototype.fillObjWithArray = function (obj, array) {
+translateJSON.prototype.fillObjWithArray = function (obj, array, index) {
     var self = this;
     for (var p in obj) {
         if (obj.hasOwnProperty(p)) {
             if (self.isObject(obj[p])) {
-                self.fillObjWithArray(obj[p], array);
+                self.fillObjWithArray(obj[p], array, index);
             }
             else if (self.isFunction(obj[p])) {
                 //Do Nothing
             }
             else {
-                obj[p] = array[0].translatedText; //Here property in an array
-                array = array.slice(1);
+                obj[p] = array[index.ref].translatedText; //Here property in an array
+                index.ref++;
             }
         }
     }
@@ -169,7 +169,11 @@ translateJSON.prototype.translateObjectAndWrite = function (obj, lang, file, cal
     var self = this;
     self.translateObject(obj, lang, function (err, translation) {
         if (!err) {
-            self.fillObjWithArray(obj, translation);
+            //Avoiding pass by value
+            var index = {
+                ref: 0
+            }
+            self.fillObjWithArray(obj, translation, index);
             //Writing to file
             jsonfile.writeFile(file, obj, function (err) {
                 if (err) {
